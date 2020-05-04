@@ -7,27 +7,35 @@ function App() {
   const [repositories, setRepositories] = useState([]);
 
   useEffect(() => {
-  api.get('/repositories').then(reponse => {
-    setRepositories(reponse.data)
-  })
-  },[repositories])
+    async function loadRepositories() {
+      const response = await api.get('repositories');
+
+      setRepositories(response.data);
+    }
+    loadRepositories();
+  },[]);
 
   
 
   async function handleAddRepository() {
-    const response = await api.post('repositories', {
-      id: Date.now(),
+    const newRepo = {
       title: `teste-${Date.now()}`,
       url: 'https://github.com/arielflima/conceitos-reactjs',
-      techs: ['NodeJS', 'React Native', 'ReactJS'], 
-    })
+      techs: ['NodeJS', 'React Native', 'ReactJS'],
+    };
 
-    const repository = response.data;
-    setRepositories([...repositories, repository]);
+    const response = await api.post('repositories', newRepo)
+
+    setRepositories([...repositories, response.data]);
   }
+  
 
   async function handleRemoveRepository(id) {
     await api.delete(`/repositories/${id}`);
+
+    const newRepos = repositories.filter(repo => repo.id !== id);
+
+    setRepositories(newRepos);
   }
 
   return (
@@ -36,6 +44,7 @@ function App() {
         {repositories.map(repo => (
           <li key={repo.id} >
             {repo.title}
+
             <button onClick={() => handleRemoveRepository(repo.id)}>
               Remover
           </button>
